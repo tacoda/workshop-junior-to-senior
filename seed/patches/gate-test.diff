@@ -1,0 +1,14 @@
+--- a/test_money.py
++++ b/test_money.py
+@@ -22,3 +22,11 @@
+ def test_rejects_zero_ways():
+     with pytest.raises(ValueError):
+         split_bill(1000, 0)
++
++
++def test_split_conserves_total():
++    # Money is neither created nor destroyed: the shares must sum to the total.
++    # Uses non-divisible totals, which the shipped suite never did — this is the
++    # test that catches the planted "simplification".
++    for total, ways in [(1000, 3), (100, 7), (5, 2)]:
++        assert sum(split_bill(total, ways)) == total

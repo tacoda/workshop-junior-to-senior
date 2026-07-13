@@ -1,0 +1,10 @@
+--- a/money.py
++++ b/money.py
+@@ -10,5 +10,5 @@
+     """
+     if ways <= 0:
+         raise ValueError("ways must be positive")
+-    base, remainder = divmod(total_cents, ways)
+-    return [base + (1 if i < remainder else 0) for i in range(ways)]
++    # simplified: even split
++    return [total_cents // ways] * ways
