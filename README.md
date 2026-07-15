@@ -13,8 +13,9 @@ skip.
 - **The seam it drives home:** the agent produces plausible code fast; seniority is the judgment
   to tell plausible from correct. That judgment is trained, not downloaded.
 
-> Work straight through **[The Lab](#the-lab)** — that's the hour. **[Going deeper](#going-deeper--after-the-workshop)**
-> is post-workshop reading and your take-home reps; **[Instructor notes](#instructor-notes)** are at the very bottom.
+> Work straight through **[The Lab](#the-lab)** — that's the 90-minute session.
+> **[After the workshop](#after-the-workshop--the-take-home-lab)** is your take-home reps;
+> **[Instructor notes](#instructor-notes)** are at the very bottom.
 
 ---
 
@@ -83,7 +84,7 @@ python app.py                                 # cash total $10.85  ← a nickel 
 ```
 
 Look at those last two lines. The test suite is **green**, and yet the customer is now billed a
-nickel more than the marked total. This is the one idea the whole hour is built on:
+nickel more than the marked total. This is the one idea the whole session is built on:
 
 > **Green means "the tests that exist passed," not "the code is correct."**
 
@@ -160,21 +161,6 @@ Both are already on. Open the `seed/` folder in Claude Code and run two quick pr
 
 **One rule, one hook:** the rule shaped the draft, the hook caught the one that slipped. That's the
 whole toolkit a charter uses to bound what an agent does.
-
-## What you leave with
-
-- The comprehension card — the daily rule, the five questions, the five moves.
-- A filled card applied to a real agent diff.
-- A test you wrote that catches the planted overcharge.
-- A working mental model: feedforward (rules) shape the draft, feedback (hooks) guard the result —
-  the two mechanisms a charter uses to shape an agent.
-
-That's the hour. Everything below is for *after* the workshop — reference, a discussion to take back
-to your team, and reps on real code.
-
----
-
-# Going deeper — after the workshop
 
 ## How it works — the two knobs
 
@@ -280,7 +266,7 @@ no defect left in production. Feedforward, feedback, *and* the code itself have 
 
 ## The bigger picture — three surfaces, spent sparingly
 
-Step back from the pennies. Everything in this hour is about the surfaces that bound what an agent
+Step back from the pennies. Everything in this session is about the surfaces that bound what an agent
 does. There are three, and you just met all of them:
 
 ```mermaid
@@ -313,9 +299,19 @@ the things that actually carry risk keep the band tight when nothing else can. T
 mechanisms you practiced today earn their cost — and knowing *when not* to reach for them is as much
 the senior's job as knowing how.
 
-## The take-home lab
+## What you leave with
 
-The hour gives you the card and one rep on a toy repo. Judgment comes from reps on real code you
+- The comprehension card — the daily rule, the five questions, the five moves.
+- A filled card applied to a real agent diff.
+- A test you wrote that catches the planted overcharge.
+- A working mental model: three surfaces bound an agent — the rule you write (instruction), the code
+  it imitates, and the hook that checks it (feedback) — and reliability is just a tight behavior band.
+
+---
+
+# After the workshop — the take-home lab
+
+The session gives you the card and one rep on a toy repo. Judgment comes from reps on real code you
 didn't write. This lab is yours to run afterward — no instructor, no answer key. Do it on a project
 you'll never ship to, so you can be wrong for free.
 
@@ -356,43 +352,32 @@ Source and docs: [sqlite.org](https://www.sqlite.org/) · source at
 
 *Everything below is for whoever runs the session. Attendees don't need it.*
 
-## Running the hour
+## Running the session
 
 | Length | Shape | Deliverable |
 |---|---|---|
-| **60 or 90 min** | Talk + one live lab | The comprehension card, applied once to a real agent diff |
+| **90 min** | Talk + one live lab + discussion | The comprehension card, applied once to a real agent diff |
 
-**Does it fit in 60?** Yes — the core (talk + Steps 1–4 + regroup) fits an hour, but *tightly*, and
-only if everyone's `pytest` **and** Claude Code are green before the session. There's no buffer for
-stragglers or agent hiccups, and the *Going deeper* sections become take-home. If you have 90
-minutes, take them: you get breathing room and can run the two knobs and the "policy just changed"
-discussion live — which is where the senior-level insight actually lands.
+The whole lab runs live in 90 minutes — talk, Steps 1–4, the two knobs, and the "policy just changed"
+discussion, which is where the senior-level insight lands. This works only if everyone's `pytest`
+**and** Claude Code are green *before* the session; pre-flight is non-negotiable.
 
-**60-minute agenda (lean — Going deeper is take-home):**
+**Agenda:**
 
 | Clock | Min | Segment |
 |---|---|---|
-| 0:00 | 3 | Welcome; confirm everyone is green (pre-flight done ahead of time) |
-| 0:03 | 12 | Talk — the frame, the key ideas, the "a diff I couldn't explain" anecdote |
-| 0:15 | 3 | Step 1 — baseline & spring the trap |
-| 0:18 | 12 | Step 2 — the five questions, in pairs |
-| 0:30 | 10 | Step 3 — prove it wrong (write the failing test) |
-| 0:40 | 10 | Step 4 — the rule + the hook (two prompts) |
-| 0:50 | 10 | Regroup — who caught it, green ≠ correct, point to *Going deeper* |
-
-**90-minute agenda (comfortable — discussion runs live):**
-
-| Clock | Min | Segment |
-|---|---|---|
-| 0:00 | 5 | Welcome; green check |
-| 0:05 | 15 | Talk — frame, key ideas, anecdote |
-| 0:20 | 3 | Step 1 — baseline & trap |
+| 0:00 | 5 | Welcome; confirm everyone is green (pre-flight done ahead of time) |
+| 0:05 | 15 | Talk — the frame, the key ideas, the "a diff I couldn't explain" anecdote |
+| 0:20 | 3 | Step 1 — baseline & spring the trap |
 | 0:23 | 14 | Step 2 — the five questions, in pairs |
-| 0:37 | 12 | Step 3 — prove it wrong |
-| 0:49 | 12 | Step 4 — the rule + the hook |
-| 1:01 | 10 | *Going deeper* — the two knobs (walk the tradeoffs; try one variant) |
-| 1:11 | 12 | *Going deeper* — "the policy just changed" (pairs, then share) |
-| 1:23 | 7 | The bigger picture + wrap |
+| 0:37 | 12 | Step 3 — prove it wrong (write the failing test) |
+| 0:49 | 12 | Step 4 — the rule + the hook (two prompts) |
+| 1:01 | 10 | How it works — the two knobs (walk the tradeoffs; try one variant) |
+| 1:11 | 12 | Think it through — "the policy just changed" (pairs, then share) |
+| 1:23 | 7 | The bigger picture + wrap (what you leave with) |
+
+Tight on time? The safe cuts, in order: the two knobs → the bigger picture → shrink the talk. Never
+cut Steps 1–4 or the wrap — they're the rep and the payoff. Anything cut becomes take-home.
 
 - **Cut talk before you cut lab.** If you run long, shrink the talk; never the lab.
 - **Pre-flight matters.** Put the *Before you start* block in the calendar invite and on the opening
@@ -402,7 +387,7 @@ discussion live — which is where the senior-level insight actually lands.
 - **Protect the "I almost shipped that" moment.** Step 1's trap and Step 3's red test are the
   emotional core. Don't spoil that green ≠ correct — let the room discover it.
 - **Regroup on the catch.** Who spotted the overcharge? Surface the near-miss out loud; it's the
-  point of the whole hour.
+  point of the whole session.
 
 ## The talk — the frame and the spine
 
@@ -471,5 +456,5 @@ Pair a stronger engineer with a newer one for the lab. Let the stretch in Step 3
       the plant in the shell and ask the agent to commit (both hooks are on, so the edit gate would
       otherwise catch it first).
 - [ ] Step 4 prompt 1 *states* the no-rule behavior (rounds to nearest) rather than toggling it live,
-      to keep the hour tight. To demo the toggle, comment the rounding rule out of `CLAUDE.md` and
+      to keep the session tight. To demo the toggle, comment the rounding rule out of `CLAUDE.md` and
       restart the session so it reloads — budget extra time; better suited to the 90-minute slot.
