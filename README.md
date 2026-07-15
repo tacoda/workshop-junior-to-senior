@@ -456,5 +456,5 @@ Pair a stronger engineer with a newer one for the lab. Let the stretch in Step 3
       the plant in the shell and ask the agent to commit (both hooks are on, so the edit gate would
       otherwise catch it first).
 - [ ] Step 4 prompt 1 *states* the no-rule behavior (rounds to nearest) rather than toggling it live,
-      to keep the session tight. To demo the toggle, comment the rounding rule out of `CLAUDE.md` and
-      restart the session so it reloads — budget extra time; better suited to the 90-minute slot.
+      to keep the pace up. To demo the toggle live, comment the rounding rule out of `CLAUDE.md` and
+      restart the session so it reloads — budget a few extra minutes.
