@@ -17,6 +17,20 @@ ch14, and ch15.
 - **The seam it drives home:** the agent produces plausible code fast; seniority is the
   judgment to tell plausible from correct. That judgment is trained, not downloaded.
 
+## The shape of the hour — a golden path
+
+A junior doesn't need more information; they need a direction and a place to practice it. This
+workshop gives all three, in order:
+
+1. **Direction** (the talk) — one rule, five questions, five moves, on a card you keep at the
+   keyboard. This is the path: what a senior does with any diff the agent hands them.
+2. **A small lab** (in the room) — practice the moves once, live, on a planted diff small
+   enough to finish in the hour. One clean rep so the card stops being abstract.
+3. **A take-home lab** (yours, afterward) — the bigger reps, on real open-source code (SQLite),
+   where judgment actually gets built. See *Further resources* below.
+
+Direction, one rep, then the reps that make it stick. Everything below fills in that path.
+
 ## Format
 
 | Length | Shape | Deliverable |
@@ -83,6 +97,23 @@ turn agent output into trusted output. — *ch04–06, Appendix E.*
 Keep it a talk, not a lecture: ask the room for a time they merged a diff they couldn't
 explain, and what it cost. That story is the whole workshop in one anecdote. Protect the lab —
 if you run long, cut talk, never lab.
+
+**Key ideas to land** (from Appendix E — say these out loud, they're the spine):
+
+> - The agent changes what it means to be *junior* more than what it means to be *senior*. A
+>   senior already has the judgment the tool can't supply; a junior is building it at the exact
+>   moment the tool offers to skip it.
+> - A senior is not the engineer who types less. A senior is the engineer who understands
+>   enough to know when the agent is wrong — and you only get there by asking.
+> - Make comprehension the requirement, not the option. Use the agent to *explain*, never to
+>   *skip*. It's the best tutor a junior ever had; don't waste it merging code you can't read.
+> - A green pipeline is permission to proceed. A red one is the system teaching you something
+>   before a human had to.
+> - The arrangement is two-sided: **you bring comprehension; the team keeps the charter good
+>   enough to onboard you and the harness good enough to guard you.** A junior's confusion is
+>   usually the charter's missing onboarding, not a gap in the junior.
+> - The day you can reliably catch a confident, fluent, wrong answer is the day you are no
+>   longer junior. That's the whole lab, in one sentence.
 
 **Artifact — the comprehension card.** One page you keep next to the keyboard:
 
