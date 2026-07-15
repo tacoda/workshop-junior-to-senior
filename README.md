@@ -227,6 +227,49 @@ mechanisms to reach for first.
 - A test you wrote that catches the planted overcharge.
 - A working mental model: feedforward (rules) + feedback (hooks) = how a charter shapes an agent.
 
+## Think it through — the policy just changed
+
+> **Discussion.** The company changes its mind: cash should now always round **up** — the
+> merchant's favor, never the customer's. You want the agent to write round-*up* code from now on.
+> **What has to change?** Talk it out before you read the answer.
+
+The tempting answer is "edit the rule." That is necessary but *not sufficient* — and the gap is the
+whole lesson. Three things describe the rounding policy, and the agent trusts them in the *opposite*
+order from how you'd expect:
+
+1. **The rule (feedforward)** — `CLAUDE.md` and `.claude/rules/cash-concrete.md`. Change "round
+   down, customer's favor" to "round up, merchant's favor":
+   > Rounding policy: cash totals round **UP** to the next nickel (5 cents), in the merchant's favor.
+   > Never round down, and never round to the nearest nickel.
+
+2. **The code (imitation)** — `seed/money.py`. This is the one people forget, and it's the one that
+   matters most. Change the implementation *and* its docstring:
+   ```python
+   def round_cash(total_cents):
+       """Round a cash total UP to the next nickel (5 cents), in the merchant's favor."""
+       return -(-total_cents // 5) * 5    # integer ceil to a nickel
+   ```
+
+3. **The hook (feedback)** — both files in `.claude/hooks/`. Flip the check from floor to ceil so it
+   now blocks anything that *doesn't* round up:
+   ```python
+   want = -(-total // 5) * 5      # was: total - (total % 5)
+   if got != want:               # block when the code failed to round up
+   ```
+
+**Why the code is the part that bites you.** An agent weights the *existing code* it can see more
+heavily than a sentence of prose in the charter. If you change only the rule and leave `round_cash`
+rounding down, the next time the agent writes or "simplifies" rounding code it will **imitate the
+floor implementation and its docstring** — quietly contradicting the new policy, no matter what the
+rule says. You've created a contradiction: the rule says up, the code says down, and the agent
+follows the code.
+
+The updated **hook catches this** — it blocks the round-down code the agent copied, forcing a
+correction. But the hook is a backstop, not a fix. The durable fix is to **make the code correct**:
+when `round_cash` already rounds up, there is nothing wrong left to imitate, and the contradiction
+between rule and code disappears. Feedforward, feedback, *and* the code itself have to agree — and
+the code is the loudest voice in the room.
+
 ## After the workshop — the take-home lab
 
 The hour gives you the card and one rep on a toy repo. Judgment comes from reps on real code you
