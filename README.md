@@ -37,29 +37,16 @@ Direction, one rep, then the reps that make it stick. Everything below fills in 
 |---|---|---|
 | **1 hour** | Talk + one live lab | The comprehension card, applied once to a real agent diff |
 
-Longer 2-hour and 6-hour versions are parked in `_dropped-tracks.md` for later.
-
 ## Prerequisites
 
-You can read code; you've used an AI coding tool once; a throwaway repo.
-
-## The ramp (varying levels in the room)
-
-Engineers arrive at different levels, so the workshop ramps in **scope and pace**:
-
-- **Floor first.** Early modules assume the least and move slowly — everyone starts on the
-  same page, no one is lost by lunch.
-- **Ceiling later.** Later modules widen scope and quicken pace — stronger engineers get
-  stretched instead of bored.
-- **On-ramps** (⟲) let a struggling engineer rejoin at the start of any module.
-- **Stretch goals** (↑) give fast finishers extra depth without blocking the room.
+You can read code; you've used an AI coding tool once.
 
 ## The seed repo
 
-Every track uses [`seed/`](./seed/) — `split`, a bill-splitting service small enough to hold
-in your head, with one money invariant that punishes plausible-but-wrong changes. The agent's
-"simplification" lives in `seed/patches/plausible-but-wrong.diff`: it looks cleaner, passes
-the tests already in the repo, and quietly loses money. Catching it is the point.
+The lab code is in [`seed/`](./seed/) — `split`, a bill-splitting service small enough to hold
+in your head, with one money invariant that punishes plausible-but-wrong changes.
+
+The agent's "simplification" lives in `seed/patches/plausible-but-wrong.diff`: it looks cleaner, passes the tests already in the repo, and quietly loses money. Catching it is the point.
 
 ```bash
 cd seed && pip install pytest && pytest      # green to start
@@ -67,11 +54,7 @@ cd seed && pip install pytest && pytest      # green to start
 
 ---
 
-## Track A — 1 hour (talk + one live lab)
-
-One talk, one lab. The ramp lives inside the lab: the base task is comprehension — everyone
-finishes it — and the ↑ stretch is catching the plant. This is the confidence track. Nobody
-leaves stuck; everybody leaves with a filled card.
+## Workshop
 
 ### Pre-flight · Green before we start (send ahead, or first 3 minutes)
 A failed `pip install` in minute two costs you the lab. Have every attendee run this *before*
@@ -79,7 +62,7 @@ the talk and show a green suite — put it in the calendar invite and repeat it 
 slide:
 
 ```bash
-git clone <seed-url> && cd seed
+git clone https://github.com/tacoda/workshop-junior-to-senior.git && cd seed
 pip install pytest && pytest      # 3 passed — you're ready
 ```
 
@@ -87,7 +70,7 @@ Anyone red here pairs with someone green. No one debugs their environment on lab
 ⟲ **on-ramp:** no local setup? Pair, or run it in any browser Python sandbox — the seed is
 three small files.
 
-### Talk · The split, the rule, the five moves (0:03–0:33)
+### The split, the rule, and the five moves
 Name the split that organizes everything around the agent: **does it execute, or is it
 read?** The machinery executes (the agent, the loop, the tools); the charter is read (the
 `CLAUDE.md`, the rules, the gates). Comprehension is *your* job because the agent can produce
@@ -137,7 +120,7 @@ FIVE MOVES (comprehension out — the junior→senior cases)
   5. Catch the agent being wrong — find the confident, fluent, wrong answer. Prove it.
 ```
 
-### Lab · Read one agent diff (0:33–1:00)
+### Lab · Read one agent diff
 Pair up — a stronger engineer with a newer one where you can. Work the steps in order; each
 has a checkpoint so you know you're on track.
 
@@ -164,6 +147,120 @@ has a checkpoint so you know you're on track.
 **Artifact:** a filled comprehension card applied to a real diff (all pairs); a failing
 conservation test (stretch).
 
+### Coda · The two loops that shape the agent (guided demo)
+
+**The one idea to leave with.** Almost everything in this field reduces to two kinds of loop:
+
+- **Feedforward** — a signal that shapes the output *before* it is produced. Here: **the rule**
+  in `CLAUDE.md`. The agent reads it and (usually) writes conforming code the first time.
+- **Feedback** — a signal that checks the output *after* it is produced and reports back. Here:
+  **the hook** in `.claude/hooks/`. It runs the invariant as code and refuses a violating result.
+
+A charter is mostly these two mechanisms pointed at the agent. This exercise gives it exactly one
+of each — one feedforward (the rule), one feedback (the hook) — so you can see each in isolation.
+Everything more advanced (layered gates, CI, evals, agent-written tests) is more of the same two
+loops. Later workshops build on this; today just make the two mechanisms concrete.
+
+#### Walk it through
+
+Two parts. **Part A** needs only a terminal. **Part B** needs the `seed/` folder open in Claude
+Code so `seed/.claude/` (the rule and the hooks) is active. Copy-paste in order.
+
+**Part A · The trap — terminal only (3 min)**
+
+```bash
+cd seed
+pytest                                       # 3 passed
+python app.py                                # total: $10.00
+
+git apply patches/plausible-but-wrong.diff   # the fake agent diff (stands in for a real one)
+pytest                                        # still 3 passed   ← the trap
+python app.py                                 # total: $9.99     ← a cent gone, suite still green
+
+git checkout money.py                         # reset to clean
+```
+
+The lesson is the last two lines: the suite is green, yet a cent vanished. **Green means "the
+tests that exist passed," not "correct."**
+
+**Part B · The two loops — with your agent (5 min)**
+
+Open `seed/` in Claude Code. The charter is already on: the concrete money rule in `CLAUDE.md`
+(feedforward) and both gates in `.claude/hooks/` (feedback). Do these three in order.
+
+1. **Feedforward — the rule steers the first draft.** Ask your agent, verbatim:
+   > Simplify `split_bill` in money.py.
+
+   The rule pushes it to keep the remainder. Check: `pytest` is green *and* — read the diff — the
+   shares still sum to the total. A rule shapes the draft, but it is only a suggestion.
+
+2. **Feedback (fast) — the edit gate catches a bad draft instantly.** Ask your agent, verbatim:
+   > Make `split_bill` a plain even split: `return [total_cents // ways] * ways`.
+
+   The moment it saves `money.py`, the `PostToolUse` gate fires and reports back:
+   ```text
+   conserve-gate (edit): split_bill(1000, 3) = [333, 333, 333] sums to 999, not 1000 — money was lost.
+   ```
+   Told *why*, the agent puts the remainder back. `pytest` green and conserving.
+
+3. **Feedback (late) — the commit gate is the last line.** Reset, apply the plant in the shell,
+   then ask the agent to commit it:
+   ```bash
+   git checkout money.py && git apply patches/plausible-but-wrong.diff
+   ```
+   > Commit this change.
+
+   The `PreToolUse` gate blocks the commit outright:
+   ```text
+   conserve-gate (commit): BLOCKED. split_bill(1000, 3) = [333, 333, 333] sums to 999, not 1000 — money was lost.
+   ```
+   Reset when done: `git checkout money.py`.
+
+That is the whole idea in three prompts: the rule shaped the draft; the fast gate caught the draft
+that slipped; the late gate stopped it from shipping. **One feedforward, one feedback.**
+
+#### The knobs, and their tradeoffs
+
+The flow is fixed; what you plug into it is not. Each loop has a design choice, shipped in the seed
+as two examples so you can feel the difference.
+
+**Feedforward — the rule's *specificity* (`seed/.claude/rules/`).** A rule you cannot fail is a
+rule that cannot steer.
+
+| Rule | What it says | Tradeoff |
+|---|---|---|
+| `money-vague.md` | "Be careful with money, don't lose precision." | Cheap, universal, ages well — and exerts almost no force. The plant reads as compliant. |
+| `money-concrete.md` | "`split_bill` shares must sum *exactly* to the total; spread the remainder." | More work, narrower scope — but the agent can check itself against it, so it shapes the first draft. |
+
+**Feedback — the gate's *position* (`seed/.claude/hooks/`).** Same check, different distance from
+the mistake. The earlier the loop closes, the cheaper the fix.
+
+| Hook | Event | Speed / consequence |
+|---|---|---|
+| `conserve-gate-edit.py` | `PostToolUse` on `Edit`/`Write` | **Fast.** Fires the instant `money.py` is saved; agent corrected mid-task, fix is local. The bad code did exist on disk for a moment. |
+| `conserve-gate-commit.py` | `PreToolUse` on `git commit` | **Late.** Fires only at ship time; nothing bad ever lands, but the mistake may be buried under later work, so the fix costs more. |
+
+> **Why the hook matcher is `Bash`, not `git`.** Claude Code has no `Git` tool — `git commit` runs
+> as a shell command through the `Bash` tool. So the hook matches `Bash` and the script filters for
+> `git commit` in the command string. The matcher names the *tool*, not the program it runs.
+
+**Try the variants (optional).** The seed ships all four so you can feel the tradeoff, not just
+read it. Each swap is one step; undo it with `git checkout` when done.
+
+- *Weak rule:* paste the contents of `.claude/rules/money-vague.md` over the money rules in
+  `CLAUDE.md`, restart the agent, and re-run Part B step 1 — watch the vague rule fail to steer.
+- *Commit gate alone:* delete the `PostToolUse` block from `.claude/settings.json` so only the
+  late gate is wired, then re-run Part B step 2 — the bad edit now sails through and is caught only
+  at commit. That gap between "caught on save" and "caught at ship" is the cost of a slow loop.
+
+Real charters use both ends of both knobs — a concrete rule for the load-bearing path and a vague
+one for coverage, a fast gate for cheap fixes and a late gate for defense in depth.
+
+The rule guides the agent's behavior; the hook enforces that the result complied. A rule without a
+hook is a suggestion; a hook without a rule is a gate no one explained. Together — guidance you
+write, enforcement you run — they are the smallest whole unit of a charter, and the two
+mechanisms a junior should learn to reach for first. — *ch04–06, ch15.*
+
 ---
 
 ## Takeaway artifacts
@@ -171,7 +268,7 @@ conservation test (stretch).
 - A filled card applied to a real agent diff.
 - A conservation test that catches the planted bug (stretch finishers).
 
-## Further resources — take-home lab (provided, not covered in the hour)
+## Further resources — take-home lab (provided, not covered in the workshop)
 
 The hour gives you the card and one rep on a toy repo. Judgment comes from reps on real code
 you didn't write. This lab is yours to run afterward — no instructor, no answer key. Do it on a
