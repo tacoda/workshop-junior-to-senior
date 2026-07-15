@@ -293,15 +293,12 @@ no defect left in production. Feedforward, feedback, *and* the code itself have 
 Step back from the pennies. Everything in this hour is about the surfaces that bound what an agent
 does. There are three, and you just met all of them:
 
-```
-        Instruction                                   
-      (charter prose) ──┐                             
-                        │                             
-         The code ──────┼──▶   Agent   ──▶   Behavior band
-       (imitation)      │                 (how tight = reliability)
-                        │                             
-         Feedback ──────┘                             
-      (sensors, gates)                                
+```mermaid
+flowchart LR
+    I["Instruction<br/>(charter prose)"] --> A[Agent]
+    C["The code<br/>(imitation)"] --> A
+    F["Feedback<br/>(sensors, gates)"] --> A
+    A --> B["Behavior band<br/>(how tight = reliability)"]
 ```
 
 - **Instruction** — the charter prose the agent reads: rules, `CLAUDE.md`. This is feedforward.
