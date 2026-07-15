@@ -307,6 +307,53 @@ the senior's job as knowing how.
 - A working mental model: three surfaces bound an agent — the rule you write (instruction), the code
   it imitates, and the hook that checks it (feedback) — and reliability is just a tight behavior band.
 
+But the card is only the method. What carries it into Monday is a handful of shifts in how you
+*think* — and not one of them is about typing faster. The agent already types faster than you. Your
+edge is everything it can't do: knowing what "correct" means here, and noticing when the fluent
+answer isn't it.
+
+Start from what the job actually is. Writing code was never the point — it was always the means. The
+job is solving a business problem: someone needs a bill settled correctly, a customer not
+overcharged, a policy honored. Code is how we've done that, but the "round down, customer's favor"
+policy is the *why* the code exists at all. The agent commoditizes the means — it produces the code
+faster than you can — which doesn't shrink your job, it *reveals* it. What's left when the typing is
+free is the part that was always the real work: understanding the problem well enough to know what
+correct even means. Seniority was always that understanding, not the typing speed; the agent just
+made it impossible to hide behind the keyboard.
+
+- **From "does it work?" to "how would I know?"** The junior question is *did the tests pass.* The
+  senior question is *what would have to be true for this to be wrong, and did I check it?* Step 1
+  lived in that gap. Distrust the green until you've named the case it doesn't cover.
+- **From "it's done" to "I can explain it."** Working code you can't explain is a debt with your
+  name on it. If you can't say what it does, where it enters and leaves, and why — out loud, in your
+  own words — you haven't finished reading.
+- **Confusion is a signal, not a shame.** A stall means the charter never explained it (a gap the
+  *team* owes you) or you haven't understood it yet (a gap *you* close by asking). Name which.
+  Juniors hide it and merge; point at the line instead and say "I don't get this yet."
+- **The agent is a tutor, not an oracle.** Use it to *explain*, never to *skip*. Form your own
+  answer before you accept its. Pasting a diff you couldn't defend hands it the judgment that was
+  supposed to be yours.
+- **You own the change the moment you merge it.** The agent has no accountability — it doesn't get
+  paged, doesn't sit in the review, doesn't answer for the overcharge in production. Once it lands
+  under your name it's *your* code: your bug, your behavior, your 3 a.m. page. "The agent wrote it"
+  is not a defense. Ownership is the whole reason comprehension isn't optional — you can't stand
+  behind what you never understood.
+
+Three things to run on real work this week: **explain-back before merge** (say what a diff does in
+one sentence — where the sentence goes vague is where you don't understand it); **predict, then
+run** (write how you expect it to fail first — being wrong on paper is free); **one move a day**
+(the habit is the deliverable, not any single catch).
+
+And the highest-leverage hour you have: **pair with a senior — and mine the *why*, not the answer.**
+The *what* is on the screen; the *why* is in their head. Bring a filled card and ask about the
+question you stalled on, not a blank "explain this." Watch what they distrust — seniors flinch at
+certain diffs before they can say why, and that trained suspicion is exactly what you're building.
+Study their rejections; a diff sent back is a free worked example of the plausible-but-wrong. Then
+reverse the chair and explain *your* change to them — where you start hand-waving is where your
+understanding runs out, and now someone's there to catch it before production does. You bring
+comprehension; the team keeps the charter and harness good enough to guard you. Pairing is where
+both halves meet.
+
 ---
 
 # After the workshop — the take-home lab
@@ -367,14 +414,14 @@ discussion, which is where the senior-level insight lands. This works only if ev
 | Clock | Min | Segment |
 |---|---|---|
 | 0:00 | 5 | Welcome; confirm everyone is green (pre-flight done ahead of time) |
-| 0:05 | 15 | Talk — the frame, the key ideas, the "a diff I couldn't explain" anecdote |
-| 0:20 | 3 | Step 1 — baseline & spring the trap |
-| 0:23 | 14 | Step 2 — the five questions, in pairs |
-| 0:37 | 12 | Step 3 — prove it wrong (write the failing test) |
-| 0:49 | 12 | Step 4 — the rule + the hook (two prompts) |
-| 1:01 | 10 | How it works — the two knobs (walk the tradeoffs; try one variant) |
-| 1:11 | 12 | Think it through — "the policy just changed" (pairs, then share) |
-| 1:23 | 7 | The bigger picture + wrap (what you leave with) |
+| 0:05 | 12 | Talk — the frame, the key ideas, the "a diff I couldn't explain" anecdote |
+| 0:17 | 3 | Step 1 — baseline & spring the trap |
+| 0:20 | 14 | Step 2 — the five questions, in pairs |
+| 0:34 | 12 | Step 3 — prove it wrong (write the failing test) |
+| 0:46 | 12 | Step 4 — the rule + the hook (two prompts) |
+| 0:58 | 10 | How it works — the two knobs (walk the tradeoffs; try one variant) |
+| 1:08 | 12 | Think it through — "the policy just changed" (pairs, then share) |
+| 1:20 | 10 | The bigger picture + wrap — what you leave with, the mindset shifts, pairing with a senior |
 
 Tight on time? The safe cuts, in order: the two knobs → the bigger picture → shrink the talk. Never
 cut Steps 1–4 or the wrap — they're the rep and the payoff. Anything cut becomes take-home.
