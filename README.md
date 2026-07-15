@@ -17,15 +17,13 @@ ch14, and ch15.
 - **The seam it drives home:** the agent produces plausible code fast; seniority is the
   judgment to tell plausible from correct. That judgment is trained, not downloaded.
 
-## Length options
+## Format
 
-| Track | Shape | Deliverable |
+| Length | Shape | Deliverable |
 |---|---|---|
-| **1 hour** | Talk + one live lab | The comprehension card, applied once to a real diff |
-| **2 hours** | Talk + two labs | The card, plus catching a planted bug and gating it |
-| **6 hours** | 6 modules on a runnable seed repo | The card + a daily habit, drilled across comprehension, gating, and catching-the-agent-wrong |
+| **1 hour** | Talk + one live lab | The comprehension card, applied once to a real agent diff |
 
-Each track is a slice of the next up: same spine, fewer labs.
+Longer 2-hour and 6-hour versions are parked in `_dropped-tracks.md` for later.
 
 ## Prerequisites
 
@@ -57,15 +55,34 @@ cd seed && pip install pytest && pytest      # green to start
 
 ## Track A — 1 hour (talk + one live lab)
 
-Same spine as the six-hour, compressed to one lab. The ramp lives inside the lab: the base
-task is comprehension, the ↑ stretch is catching the plant.
+One talk, one lab. The ramp lives inside the lab: the base task is comprehension — everyone
+finishes it — and the ↑ stretch is catching the plant. This is the confidence track. Nobody
+leaves stuck; everybody leaves with a filled card.
 
-### Talk · The split, the rule, the five moves (0:00–0:35)
+### Pre-flight · Green before we start (send ahead, or first 3 minutes)
+A failed `pip install` in minute two costs you the lab. Have every attendee run this *before*
+the talk and show a green suite — put it in the calendar invite and repeat it on the opening
+slide:
+
+```bash
+git clone <seed-url> && cd seed
+pip install pytest && pytest      # 3 passed — you're ready
+```
+
+Anyone red here pairs with someone green. No one debugs their environment on lab time.
+⟲ **on-ramp:** no local setup? Pair, or run it in any browser Python sandbox — the seed is
+three small files.
+
+### Talk · The split, the rule, the five moves (0:03–0:33)
 Name the split that organizes everything around the agent: **does it execute, or is it
 read?** The machinery executes (the agent, the loop, the tools); the charter is read (the
 `CLAUDE.md`, the rules, the gates). Comprehension is *your* job because the agent can produce
 the code but not the judgment that it's right. Then the daily rule and the five moves that
 turn agent output into trusted output. — *ch04–06, Appendix E.*
+
+Keep it a talk, not a lecture: ask the room for a time they merged a diff they couldn't
+explain, and what it cost. That story is the whole workshop in one anecdote. Protect the lab —
+if you run long, cut talk, never lab.
 
 **Artifact — the comprehension card.** One page you keep next to the keyboard:
 
@@ -89,125 +106,90 @@ FIVE MOVES (comprehension out — the junior→senior cases)
   5. Catch the agent being wrong — find the confident, fluent, wrong answer. Prove it.
 ```
 
-### Lab · Read one agent diff (0:35–1:00)
-Open `seed/`, run `pytest` (green). Apply the agent's change and re-run:
+### Lab · Read one agent diff (0:33–1:00)
+Pair up — a stronger engineer with a newer one where you can. Work the steps in order; each
+has a checkpoint so you know you're on track.
 
-```bash
-git apply patches/plausible-but-wrong.diff && pytest    # still green — that's the trap
-```
+1. **Baseline (2 min).** `pytest` (green), then `python app.py`. Read the receipt out loud.
+   *Checkpoint:* the total prints `$10.00`.
+2. **Apply the agent's change (3 min).** This is the diff an agent handed you, cleaner-looking
+   than the original:
+   ```bash
+   git apply patches/plausible-but-wrong.diff && pytest    # still 3 passed — that's the trap
+   ```
+   *Checkpoint:* green suite, and you feel the pull to merge it.
+3. **The five questions, out loud (12 min).** Run all five against the diff with your partner.
+   Explain what `split_bill` now does, where the change enters and leaves, and which nearby
+   code disagrees. Write the answers on your card. *Checkpoint:* a filled comprehension card —
+   this is the base deliverable, and everyone reaches it.
+4. **↑ Stretch — prove it wrong (remaining time).** Green, but is it correct? Run
+   `python app.py` again and watch the total: a cent vanished. Split $10.00 three ways by hand,
+   sum the shares, and write one test that fails on this diff. *Checkpoint:* a red test you
+   wrote yourself. — *ch15, Appendix E.*
+5. **Regroup (last 5 min).** Who caught the missing cent? Surface the "I almost shipped that"
+   moment — it's the point of the whole hour. Green means *the tests that exist passed*, not
+   *correct*.
 
-Run the five questions against the diff out loud with the person next to you. Explain what
-`split_bill` now does. **↑ Stretch:** the tests pass but the money is wrong — find it. Split a
-$10.00 bill three ways and add up the shares. Prove the bug with one new test.
-— *ch15, Appendix E.*
-
-**Artifact:** a filled comprehension card applied to a real diff.
-
----
-
-## Track C — 2 hours (talk + two labs)
-
-A bigger slice: comprehension *and* catching the agent wrong. Ramp is across the two labs —
-Lab 1 levels the floor, Lab 2 stretches.
-
-### Talk · The split, the rule, the five moves (0:00–0:20)
-The condensed version of Track A's talk: the split, the daily rule, the five moves.
-— *ch04–06, Appendix E.* **Artifact:** the comprehension card.
-
-### Lab 1 · Comprehension (0:20–1:05)
-Read `seed/money.py` and `seed/app.py` with the agent as your tutor — ask it *what*, *where*,
-and *why* on every function, but never let it merge for you. Trace how a bill total enters
-`app.py`, moves through `split_bill`, and leaves as a printed receipt. Name every hop.
-— *ch07, Appendix E.* ⟲ **on-ramp:** run `python app.py` first and read its output.
-
-### Lab 2 · Catch the agent wrong + gate it (1:05–2:00)
-Apply `patches/plausible-but-wrong.diff`. The suite stays green because it only tests
-divisible totals — that's how slop survives review. Find the broken invariant (the shares no
-longer sum to the total), then **write the gate that stops it**: a conservation test that
-fails on the plant and passes on the correct version. Reject the diff. — *ch15, ch18.*
-
-**Artifact:** a gate (`test_split_conserves_total`) that catches the plant.
-
----
-
-## Track B — 6 hours (6 modules on the seed repo)
-
-### Module 0 · The split, and why it's yours (0:00–0:30)
-What charter and harness each are, and why comprehension is the junior's job and not the
-agent's. The arrangement is two-sided: you bring comprehension; the team keeps the charter
-good enough to onboard you and the harness good enough to guard you. — *ch04–06, Appendix E.*
-⟲ **on-ramp:** the split in one sentence — machinery executes, charter is read.
-
-**Artifact:** the comprehension card (see Track A).
-
-### Module 1 · Comprehension is the job (0:30–1:30)
-Read code you didn't write and explain it back. Use the agent for the in-flight question a
-junior used to interrupt a senior to ask: *what is this pattern, why did this gate block me,
-what does this rule mean?* Ask about the codebase and about the charter — the charter is code.
-Model `seed/` as a behavioral system: inputs, invariants, outputs. — *ch07, Appendix E.*
-**↑ Stretch:** trace one change through `app.py` and `money.py` and predict its blast radius
-before running.
-
-### Module 2 · Files that govern (1:30–2:45)
-`CLAUDE.md` and rule files steer the agent by what you author. Read the seed's starter
-`CLAUDE.md`, then write the money rule the service is missing — the one that will make the
-plant illegal. — *ch11, ch11b.*
-
-**Artifact template** (fill in `seed/CLAUDE.md` or a rules file):
-```text
-# money rules
-## Iron laws (agent must refuse to violate)
-- Money is integer cents. Never use float to store or compute money.
-## Golden rules (override needs a stated reason in the PR)
-- Any function that splits or moves money must conserve the total. Ship a conservation test with it.
-## Preferences (style; never block a change)
-- Format money for display only at the edge (e.g. printing), never mid-calculation.
-```
-
-### Module 3 · Legible code is a rule you don't write down (3:15–4:15)
-Readable structure is itself a constraint on the agent: code it can follow, it changes
-safely; code it can't, it guesses. Take one function in `seed/` and raise its legibility —
-naming, shape, a deep interface over a shallow one. — *ch14.* **↑ Stretch:** refactor an
-agent-written function for legibility and defend every change out loud.
-
-### Module 4 · Catch the agent wrong (4:15–5:30)
-The capstone move. Apply `patches/plausible-but-wrong.diff`; watch the suite stay green.
-Reproduce the failure yourself before you trust any fix — split $10.00 three ways and sum the
-shares. Find the *cause*, not the symptom: the naive split drops the remainder cents. Then
-write the gate that would have caught it — the conservation test from Module 2's golden rule.
-— *ch15, ch18, Appendix E.* ⟲ **on-ramp:** run the seed's existing tests first, then the diff.
-
-**Artifact:** `test_split_conserves_total` — a gate that fails on the plant, passes on the fix.
-
-### Module 5 · Your daily loop (5:30–6:00)
-Fold it into a repeatable habit sized for real work: read before you merge, lean on the gates,
-read *why* a red pipeline caught you. When you can read a codebase and explain it, debug to a
-named cause, judge quality on sight, and catch the agent being wrong, you have the foundation
-the rest of the book stands on. — *Appendix E.*
-
-**Artifact — your daily-loop checklist:**
-```text
-BEFORE I MERGE
-  [ ] I can explain this diff in my own words (the daily rule).
-  [ ] I ran the five questions; nothing failed silently.
-  [ ] The change ships with the test that would catch it breaking.
-  [ ] A red pipeline taught me something — I read why before I fixed it.
-```
+**Artifact:** a filled comprehension card applied to a real diff (all pairs); a failing
+conservation test (stretch).
 
 ---
 
 ## Takeaway artifacts
-- The comprehension card (all tracks).
-- A money rule for the seed service (2hr, 6hr).
-- A conservation gate that catches a planted bug (all tracks).
-- A personal daily-loop checklist (6hr).
+- The comprehension card — the daily rule + the five questions + the five moves.
+- A filled card applied to a real agent diff.
+- A conservation test that catches the planted bug (stretch finishers).
+
+## Further resources — take-home lab (provided, not covered in the hour)
+
+The hour gives you the card and one rep on a toy repo. Judgment comes from reps on real code
+you didn't write. This lab is yours to run afterward — no instructor, no answer key. Do it on a
+project you'll never ship to, so you can be wrong for free.
+
+### Why learn from an open-source project
+A toy seed can't teach you scale, history, or the weight of code other people depend on. A real
+open-source project can. It's readable at your own pace, its commit history records why every
+line is the way it is, and its test suite shows you what "proven correct" actually looks like.
+The five questions and five moves are the same; only the code got real.
+
+### Why SQLite is the one to start on
+- **Small enough to hold.** One file's worth of public API, a codebase you can navigate in an
+  afternoon — not a framework with a hundred moving parts.
+- **Famous for its tests.** SQLite ships with far more test code than library code, and the
+  project documents *how* it's tested. That's the discipline this workshop is training, shown
+  at professional scale. Read [sqlite.org/testing.html](https://www.sqlite.org/testing.html).
+- **The docs explain the *why*.** Most projects tell you what a function does. SQLite tells you
+  why it was built that way — which is question 3 on your card, answered for you.
+- **Self-contained C.** Legible, dependency-free, and close to the machine. You see exactly
+  where a change enters and leaves.
+
+Source and docs: [sqlite.org](https://www.sqlite.org/) · source in Fossil at
+[sqlite.org/src](https://www.sqlite.org/src/) · a readable mirror lives on GitHub.
+
+### The lab — run the card on real code
+1. **Read one design doc, explain it back.** Pick a page from the SQLite docs, read it, then
+   explain it to your agent in your own words. Where you stall is where you didn't understand.
+2. **Comprehension pass.** Choose one self-contained function. Run all five questions against
+   it. Use the agent as a tutor — ask *what*, *where*, *why* — but form your own answer first.
+3. **Predict the failure (move 4).** Pick one test in the suite. Before reading it, predict
+   what input would break the code it guards. Then read the test. Were you right?
+4. **Catch the agent wrong (move 5).** Ask your agent to "simplify" or "optimize" one small
+   function. Run the five questions on its diff. Prove it correct, or prove it wrong with a
+   test — the same drill as the workshop, now on code that matters.
+5. **Legibility read (move 3).** Find the best-named and worst-named thing you can. Ask why the
+   good one is good. That instinct is what you're building.
+
+### Where to go next
+- **Repeat step 4 weekly** on any codebase you touch. The habit is the deliverable, not any one
+  catch.
+- A longer series on charters, harnesses, and governing AI systems builds on this foundation.
 
 ## Instructor notes
 - The plant in `seed/patches/` is the emotional core — everyone should feel the "I almost
   shipped that" moment. Protect time for it; it's the whole point of the capstone move.
 - The trap works because the seed's own tests only cover divisible totals. Don't spoil that —
   let the room discover that green means "the tests that exist passed," not "correct."
-- Mixed room: pair a stronger engineer with a struggling one for Module 1; let the ↑ stretch
+- Mixed room: pair a stronger engineer with a struggling one for the lab; let the ↑ stretch
   goals absorb fast finishers so you never pace to the ceiling.
 - Reference catch: `seed/patches/gate-test.diff` is the conservation gate, for instructors.
 - Cut talk before you cut lab.
