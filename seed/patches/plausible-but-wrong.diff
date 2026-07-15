@@ -1,10 +1,9 @@
 --- a/money.py
 +++ b/money.py
-@@ -10,5 +10,5 @@
+@@ -8,4 +8,5 @@
+     always in the customer's favor — they never pay more than the marked total.
+     Integer cents only.
      """
-     if ways <= 0:
-         raise ValueError("ways must be positive")
--    base, remainder = divmod(total_cents, ways)
--    return [base + (1 if i < remainder else 0) for i in range(ways)]
-+    # simplified: even split
-+    return [total_cents // ways] * ways
+-    return total_cents - (total_cents % 5)
++    # simplified: round to the nearest nickel
++    return round(total_cents / 5) * 5

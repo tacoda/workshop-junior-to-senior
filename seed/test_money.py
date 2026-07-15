@@ -1,24 +1,16 @@
-"""The suite that ships with the repo.
+"""The suite that ships with the repo."""
 
-Note for instructors: these tests only exercise divisible totals, so both the
-correct split and the planted "simplification" pass them. That is deliberate —
-green here means "the tests that exist passed," not "the code is correct." The
-conservation gate learners write in Module 4 is what actually catches the plant.
-"""
-
-import pytest
-
-from money import split_bill
+from money import round_cash
 
 
-def test_even_split():
-    assert split_bill(1000, 4) == [250, 250, 250, 250]
+def test_already_a_nickel():
+    assert round_cash(1000) == 1000
 
 
-def test_one_share_per_person():
-    assert len(split_bill(1000, 3)) == 3
+def test_small_remainder():
+    # 1002¢: rounds to 1000 whether you go down or to nearest — direction doesn't show here.
+    assert round_cash(1002) == 1000
 
 
-def test_rejects_zero_ways():
-    with pytest.raises(ValueError):
-        split_bill(1000, 0)
+def test_zero():
+    assert round_cash(0) == 0

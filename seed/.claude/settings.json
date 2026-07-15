@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/conserve-gate-edit.py\""
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/round-gate-edit.py\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/conserve-gate-commit.py\""
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/round-gate-commit.py\""
           }
         ]
       }

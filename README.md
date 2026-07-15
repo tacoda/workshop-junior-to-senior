@@ -32,11 +32,12 @@ pip install pytest && pytest      # 3 passed — you're ready
 ```
 
 ⟲ **No local setup?** Pair with someone who's green, or run it in any browser Python sandbox —
-the seed is three small files.
+the seed is two small files.
 
-**What you'll work on.** The seed in [`seed/`](./seed/) is `split`, a bill-splitting service
-small enough to hold in your head. It has one rule that matters: **the shares of a split must sum
-back to the total** — money is never created or destroyed. That single invariant is what makes a
+**What you'll work on.** The seed in [`seed/`](./seed/) is a tiny cash-register service: it settles
+a bill for cash and prints a receipt. Pennies are discontinued, so cash totals round to a nickel —
+and the decision that matters is **which way they round.** The charter's policy is *round down, in
+the customer's favor*: they never pay more than the marked total. That single policy is what makes a
 plausible-but-wrong change catchable.
 
 ## Your tool: the comprehension card
@@ -71,32 +72,35 @@ Everything is in `seed/`. Copy-paste this block and read the comments as you go:
 ```bash
 cd seed
 pytest                                       # 3 passed
-python app.py                                # total: $10.00   ← correct
+python app.py                                # cash total $10.80   ← rounded down, customer's favor
 
 git apply patches/plausible-but-wrong.diff   # a diff "an agent handed you" — looks cleaner
 pytest                                        # still 3 passed  ← the trap
-python app.py                                 # total: $9.99    ← a cent vanished
+python app.py                                 # cash total $10.85  ← a nickel overcharged
 ```
 
-Look at those last two lines. The test suite is **green**, and yet a cent disappeared. This is the
-one idea the whole hour is built on:
+Look at those last two lines. The test suite is **green**, and yet the customer is now billed a
+nickel more than the marked total. This is the one idea the whole hour is built on:
 
 > **Green means "the tests that exist passed," not "the code is correct."**
 
-The shipped suite only ever tested splits that divide evenly, so it never noticed the remainder
-going missing. Leave the diff applied for now — you'll investigate it in the next step.
+The shipped suite only used totals that round the same way either direction, so it never noticed the
+flip. The diff rounds to the *nearest* nickel — the textbook cash-rounding scheme, written with a
+`float` — instead of *down*, the charter's customer's-favor policy. Leave the diff applied; you'll
+investigate it next.
 
 ## Step 2 · Run the five questions (comprehension *in*)
 
 Open `seed/money.py` and read the change you just applied. With a partner if you can, work down the
 five questions from the card, out loud. Write your answers down:
 
-1. **What does it do, in one sentence?** (`split_bill` now returns `total // ways` for everyone.)
-2. **Where does the change enter and leave?** Trace it from `app.py` into `money.py` and back to
-   the printed total.
-3. **Why is it written this way?** The comment says "simplified." Is simpler worth the cent?
-4. **Is it consistent?** The docstring still promises the shares "always sum back to the total."
-   The code no longer does. Which do you trust?
+1. **What does it do, in one sentence?** (`round_cash` now rounds to the *nearest* nickel, not down.)
+2. **Where does the change enter and leave?** Trace it from `app.py` into `money.py` and back to the
+   printed cash total.
+3. **Why is it written this way?** The comment says "simplified." Rounding to nearest *is* the
+   textbook cash scheme — but is it *this business's* policy? And why is there suddenly a `float`?
+4. **Is it consistent?** The docstring still promises cash rounds "in the customer's favor," and the
+   charter's iron law says integer cents only. The code now breaks both. Which do you trust?
 5. **What would you call slop?** Name the exact line that is plausible, passing, and quietly wrong.
 
 A filled card is your first deliverable — and everyone reaches it.
@@ -105,67 +109,71 @@ A filled card is your first deliverable — and everyone reaches it.
 
 Suspicion isn't a catch. Turn it into a test that fails:
 
-- Split `$10.00` three ways by hand: `334 + 333 + 333 = 1000`. The "simplified" code gives
-  `333 + 333 + 333 = 999`.
-- Write one test asserting the shares sum to the total for a **non-divisible** split — the case the
-  shipped suite skipped:
+- A $10.83 total is 1083¢. Customer's favor rounds **down** to `1080` ($10.80). The "simplified"
+  code rounds to nearest: `1085` ($10.85) — a nickel the customer never owed.
+- Write one test asserting cash never rounds *up*, using totals whose last digit forces the
+  direction — the case the shipped suite skipped:
 
 ```python
-def test_split_conserves_total():
-    for total, ways in [(1000, 3), (100, 7), (5, 2)]:
-        assert sum(split_bill(total, ways)) == total
+def test_cash_never_rounds_up():
+    for total in [1083, 1084, 999]:
+        assert round_cash(total) == total - (total % 5)
 ```
 
 Run `pytest`. It goes **red** on the diff — you just caught a confident, fluent, wrong answer and
-proved it. That red test is the day you stop being junior, in miniature. Reset before the next
-step:
+proved it. That red test is the day you stop being junior, in miniature. Reset before the next step:
 
 ```bash
-git checkout money.py
+git apply -R patches/plausible-but-wrong.diff
 ```
 
 ## Step 4 · The two loops that catch it automatically
 
-You caught the bug by hand. Now watch the *charter* catch it for you. Almost everything in this
-field reduces to two kinds of loop:
+You caught the overcharge by hand. Now watch the *charter* catch it for you. Almost everything in
+this field reduces to two kinds of loop:
 
 - **Feedforward** — a signal that shapes the output *before* it's produced. Here: a **rule** in
-  `CLAUDE.md` telling the agent "a split must conserve the total." The agent reads it and usually
-  writes conforming code the first time.
+  `CLAUDE.md` telling the agent "cash rounds down to a nickel, in the customer's favor." The agent
+  reads it and writes conforming code the first time.
 - **Feedback** — a signal that checks the output *after* it's produced and reports back. Here: a
-  **hook** in `.claude/hooks/` that runs the invariant as code and refuses a violating result.
+  **hook** in `.claude/hooks/` that runs the policy as code and refuses a violating result.
 
 The seed already has one of each turned on. Open the `seed/` folder in Claude Code and run these
 three prompts in order.
 
-1. **Feedforward — the rule steers the first draft.** Ask your agent, verbatim:
-   > Simplify `split_bill` in money.py.
+1. **Feedforward — one sentence of charter changes the code.** Ask your agent, verbatim (note: the
+   request says nothing about rounding *direction*):
+   > Show me how you'd implement `round_cash(total_cents)` — round a cash total to a nickel now that
+   > pennies are gone. Just show the code, don't edit the file.
 
-   The rule pushes it to keep the remainder. Check: `pytest` is green *and* — read the diff — the
-   shares still sum to the total. A rule shapes the draft, but it's only a suggestion the agent can
-   still miss.
+   With the rounding rule in `CLAUDE.md`, it rounds **down** with integer math
+   (`total_cents - total_cents % 5`). Now comment that rule out of `CLAUDE.md` and ask again: it
+   rounds to the **nearest** nickel with a `float` (`round(total / 5) * 5`) — the overcharge from
+   Step 1. Same request, different charter, different code. *That* is the rule steering. (Restore the
+   rule when you're done.)
 
-2. **Feedback (fast) — the edit gate catches a bad draft instantly.** Ask your agent, verbatim:
-   > Make `split_bill` a plain even split: `return [total_cents // ways] * ways`.
+2. **Feedback (fast) — the edit gate catches a bad draft instantly.** With the rule restored, ask
+   your agent, verbatim:
+   > Simplify `round_cash` to round to the nearest nickel: `round(total_cents / 5) * 5`.
 
    The moment it saves `money.py`, the hook fires and reports back:
    ```text
-   conserve-gate (edit): split_bill(1000, 3) = [333, 333, 333] sums to 999, not 1000 — money was lost.
+   round-gate (edit): round_cash(1083) = 1085, but the customer's-favor amount is 1080 — cash rounded against the customer.
    ```
-   Told *why*, the agent puts the remainder back. `pytest` green and conserving.
+   Told *why*, the agent puts it back to rounding down. `pytest` green and customer-favoring.
 
 3. **Feedback (late) — the commit gate is the last line.** Reset, re-apply the plant in the shell,
    then ask the agent to commit it:
    ```bash
-   git checkout money.py && git apply patches/plausible-but-wrong.diff
+   git apply patches/plausible-but-wrong.diff
    ```
    > Commit this change.
 
    The commit is blocked outright:
    ```text
-   conserve-gate (commit): BLOCKED. split_bill(1000, 3) = [333, 333, 333] sums to 999, not 1000 — money was lost.
+   round-gate (commit): BLOCKED. round_cash(1083) = 1085, but the customer's-favor amount is 1080 — cash rounded against the customer.
    ```
-   Reset when done: `git checkout money.py`.
+   Reset when done: `git apply -R patches/plausible-but-wrong.diff`.
 
 **The whole idea in three prompts:** the rule shaped the draft; the fast gate caught the draft that
 slipped; the late gate stopped it from shipping. One feedforward, one feedback — the two mechanisms
@@ -181,21 +189,29 @@ rule that cannot steer.
 
 | Rule | What it says | Tradeoff |
 |---|---|---|
-| `money-vague.md` | "Be careful with money, don't lose precision." | Cheap, universal, ages well — and exerts almost no force. The plant reads as compliant. |
-| `money-concrete.md` | "`split_bill` shares must sum *exactly* to the total; spread the remainder." | More work, narrower scope — but the agent can check itself against it, so it shapes the first draft. |
+| `cash-vague.md` | "Round cash fairly to a nickel." | Cheap, universal, ages well — and exerts almost no force. Nearest-nickel reads as compliant. |
+| `cash-concrete.md` | "Round *down* to the nickel; 1083¢ settles at 1080, not 1085; integer math." | More work, narrower scope — but it decides a contested choice the agent would otherwise make for you. |
 
 **Feedback — the gate's *position* (`seed/.claude/hooks/`).** Same check, different distance from
 the mistake. The earlier the loop closes, the cheaper the fix.
 
 | Hook | Event | Speed / consequence |
 |---|---|---|
-| `conserve-gate-edit.py` | `PostToolUse` on `Edit`/`Write` | **Fast.** Fires the instant `money.py` is saved; agent corrected mid-task, fix is local. The bad code did exist on disk for a moment. |
-| `conserve-gate-commit.py` | `PreToolUse` on `git commit` | **Late.** Fires only at ship time; nothing bad ever lands, but the mistake may be buried under later work, so the fix costs more. |
+| `round-gate-edit.py` | `PostToolUse` on `Edit`/`Write` | **Fast.** Fires the instant `money.py` is saved; agent corrected mid-task, fix is local. The bad code did exist on disk for a moment. |
+| `round-gate-commit.py` | `PreToolUse` on `git commit` | **Late.** Fires only at ship time; nothing bad ever lands, but the mistake may be buried under later work, so the fix costs more. |
 
-**Try the variants (optional).** Each swap is one step; undo it with `git checkout` when done.
+**When to reach for which loop.** The two loops aren't interchangeable:
 
-- *Weak rule:* paste the contents of `.claude/rules/money-vague.md` over the money rules in
-  `CLAUDE.md`, restart the agent, and re-run Step 4 prompt 1 — watch the vague rule fail to steer.
+- **Feedforward (rules)** — for *contested decisions the model won't guess right*. Rounding
+  direction is one: left alone, a capable agent rounds to nearest (with a float) every time. The
+  rule is what makes it round your way.
+- **Feedback (hooks)** — for *invariants the model must never violate*, whether or not it usually
+  gets them right. A hook is a guarantee; a rule is only a nudge.
+
+**Try the variants (optional).** Each swap is one step; undo it when done.
+
+- *Weak rule:* replace the rounding line in `CLAUDE.md` with the line from `.claude/rules/cash-vague.md`,
+  restart the agent, and re-run Step 4 prompt 1 — watch the vague rule fail to steer.
 - *Commit gate alone:* delete the `PostToolUse` block from `.claude/settings.json` so only the late
   gate is wired, then re-run Step 4 prompt 2 — the bad edit now sails through and is caught only at
   commit. That gap between "caught on save" and "caught at ship" is the cost of a slow loop.
@@ -208,7 +224,7 @@ mechanisms to reach for first.
 
 - The comprehension card — the daily rule, the five questions, the five moves.
 - A filled card applied to a real agent diff.
-- A conservation test you wrote that catches the planted bug.
+- A test you wrote that catches the planted overcharge.
 - A working mental model: feedforward (rules) + feedback (hooks) = how a charter shapes an agent.
 
 ## After the workshop — the take-home lab
@@ -269,7 +285,7 @@ lab: Step 1 ≈ 3 min, Step 2 ≈ 12 min, Step 3 ≈ 10 min (stretch/fast finish
   with someone green.
 - **Protect the "I almost shipped that" moment.** Step 1's trap and Step 3's red test are the
   emotional core. Don't spoil that green ≠ correct — let the room discover it.
-- **Regroup on the catch.** Who found the missing cent? Surface the near-miss out loud; it's the
+- **Regroup on the catch.** Who spotted the overcharge? Surface the near-miss out loud; it's the
   point of the whole hour.
 
 ## The talk — the frame and the spine
@@ -298,6 +314,24 @@ what it cost. That story is the whole workshop in one anecdote.
 > - The day you can reliably catch a confident, fluent, wrong answer is the day you are no longer
 >   junior.
 
+## Why cash rounding, and why feedforward is the hard half to demo
+
+This seed's case was chosen from a real experiment, and the result shapes how you should teach it:
+
+- **Conservation doesn't steer.** An earlier seed used a money-conservation invariant (shares must
+  sum to the total). Across many fresh-agent trials, the agent conserved money **every time, with or
+  without the rule** — a capable model distributes remainder cents by default. A conservation *rule*
+  is invisible; only a *hook* proves anything. Good feedback demo, useless feedforward demo.
+- **Rounding direction does steer.** Asked to round a cash total to a nickel, fresh agents rounded to
+  the **nearest** nickel (with a `float`) unanimously with no rule; add "round down, customer's
+  favor" and they switched to an **integer round-down** unanimously. The two differ on ~40% of
+  totals. That is a rule visibly changing behavior — and it happens to fix the float too.
+
+The lesson to land in Step 4: **use feedforward for contested choices the model won't guess right,
+and feedback for invariants it must never violate.** If a live prompt-1 ever shows the agent already
+rounding down without the rule, that's the teaching moment, not a failure — say so and move to the
+hook.
+
 ## Mixed room
 
 Pair a stronger engineer with a newer one for the lab. Let the stretch in Step 3 and the variants in
@@ -307,8 +341,8 @@ Pair a stronger engineer with a newer one for the lab. Let the stretch in Step 3
 
 - **The seed's design** is documented in [`seed/README.md`](./seed/README.md): why the shipped suite
   is deliberately incomplete, what each file does, and the full flow.
-- `seed/patches/plausible-but-wrong.diff` — the plant (the agent's "simplification").
-- `seed/patches/gate-test.diff` — the conservation gate as a test, for reference.
+- `seed/patches/plausible-but-wrong.diff` — the plant (nearest nickel, via float).
+- `seed/patches/gate-test.diff` — the rounding gate as a test, for reference.
 - **Book map.** Appendix E ("For the Junior Engineer") is the spine. Foundations ch01–07 (the split,
   the reliability problem, the repo as a behavioral system); ch14 (the legible codebase); ch15 (tests
   and gates).
@@ -320,4 +354,5 @@ Pair a stronger engineer with a newer one for the lab. Let the stretch in Step 3
 - [ ] Both hooks are on by default, so the edit gate fires first and the commit gate rarely triggers
       on its own — Step 4 prompt 3 applies the plant in the shell to force the commit path. If you
       want the commit gate to fire alone in a live agent run, comment out the `PostToolUse` block.
-- [ ] Confirm the concrete rule in `seed/CLAUDE.md` steers a fresh agent reliably on prompt 1.
+- [ ] Step 4 prompt 1 disables the rule by commenting it out of `CLAUDE.md`; confirm your Claude Code
+      setup reloads `CLAUDE.md` between prompts (restart the session if not).

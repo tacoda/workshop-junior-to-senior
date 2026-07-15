@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""FAST feedback: catch a money-losing split the instant it is written.
+"""FAST feedback: catch cash rounding that goes against the customer the instant it's written.
 
 Wired as a PostToolUse hook on Edit/Write. It fires the moment the agent saves
 money.py, before it does anything else. This is the *tight* feedback loop:
@@ -8,7 +8,7 @@ money.py, before it does anything else. This is the *tight* feedback loop:
   * Consequence: the bad code existed on disk for a moment (the tool already ran),
                  but nothing was built on top of it, so the fix is cheap and local.
 
-Compare with conserve-gate-commit.py, the *coarse* loop that only fires at commit.
+Compare with round-gate-commit.py, the *coarse* loop that only fires at commit.
 """
 import json
 import os
@@ -21,21 +21,24 @@ seed_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 sys.path.insert(0, seed_dir)
 sys.modules.pop("money", None)  # always read the file as it is on disk right now
 try:
-    from money import split_bill
+    from money import round_cash
 except Exception as exc:  # noqa: BLE001 - surface any import failure to the agent
-    print(f"conserve-gate (edit): could not import split_bill: {exc}", file=sys.stderr)
+    print(f"round-gate (edit): could not import round_cash: {exc}", file=sys.stderr)
     sys.exit(2)
 
-# The charter's golden rule as an executable check: shares must sum to the total.
-# Non-divisible totals — the case the shipped suite never covered.
-for total, ways in [(1000, 3), (100, 7), (5, 2)]:
-    shares = split_bill(total, ways)
-    if sum(shares) != total:
+# The charter's rounding policy as an executable check: cash rounds DOWN to a
+# nickel, in the customer's favor. Uses totals whose remainder is 3-4 cents —
+# the exact case the shipped suite never covered, so round-to-nearest slips past
+# pytest but not past this.
+for total in [1083, 1084, 999]:
+    got = round_cash(total)
+    down = total - (total % 5)
+    if got != down:
         print(
-            f"conserve-gate (edit): split_bill({total}, {ways}) = {shares} "
-            f"sums to {sum(shares)}, not {total} — money was lost.\n"
-            "Caught at edit time: fix split_bill now, before you build on it. "
-            "The charter's golden rule: a split must conserve the total.",
+            f"round-gate (edit): round_cash({total}) = {got}, but the customer's-favor "
+            f"amount is {down} — cash rounded against the customer.\n"
+            "Caught at edit time: fix it now, before you build on it. "
+            "The charter's rounding policy: cash rounds DOWN to a nickel, always in the customer's favor.",
             file=sys.stderr,
         )
         sys.exit(2)  # exit 2 reports back to the agent immediately

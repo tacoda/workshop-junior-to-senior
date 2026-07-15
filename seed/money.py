@@ -1,14 +1,11 @@
-"""Money handling for the split service. Money is integer cents, never float."""
+"""Money handling for the checkout service. Money is integer cents, never float."""
 
 
-def split_bill(total_cents, ways):
-    """Split a bill evenly across `ways` people.
+def round_cash(total_cents):
+    """Round a cash total to a whole nickel (5 cents).
 
-    Returns a list of `ways` integer-cent shares. The shares always sum back to
-    `total_cents` — remainder cents are handed out one each to the first people,
-    so no money is created or destroyed.
+    Pennies are discontinued, so cash payments settle to a nickel. Rounds DOWN,
+    always in the customer's favor — they never pay more than the marked total.
+    Integer cents only.
     """
-    if ways <= 0:
-        raise ValueError("ways must be positive")
-    base, remainder = divmod(total_cents, ways)
-    return [base + (1 if i < remainder else 0) for i in range(ways)]
+    return total_cents - (total_cents % 5)
