@@ -220,13 +220,6 @@ A rule without a hook is a suggestion; a hook without a rule is a gate no one ex
 guidance you write, enforcement you run — they're the smallest whole unit of a charter, and the two
 mechanisms to reach for first.
 
-## What you leave with
-
-- The comprehension card — the daily rule, the five questions, the five moves.
-- A filled card applied to a real agent diff.
-- A test you wrote that catches the planted overcharge.
-- A working mental model: feedforward (rules) + feedback (hooks) = how a charter shapes an agent.
-
 ## Think it through — the policy just changed
 
 > **Discussion.** The company changes its mind: cash should now always round **up** — the
@@ -322,6 +315,14 @@ no human reads every diff, and comprehension alone can't scale. A few well-place
 the things that actually carry risk keep the band tight when nothing else can. That is when the two
 mechanisms you practiced today earn their cost — and knowing *when not* to reach for them is as much
 the senior's job as knowing how.
+
+## What you leave with
+
+- The comprehension card — the daily rule, the five questions, the five moves.
+- A filled card applied to a real agent diff.
+- A test you wrote that catches the planted overcharge.
+- A working mental model: three surfaces bound an agent — the rule you write (instruction), the code
+  it imitates, and the hook that checks it (feedback) — and reliability is just a tight behavior band.
 
 ## After the workshop — the take-home lab
 
