@@ -192,10 +192,6 @@ the mistake. The earlier the loop closes, the cheaper the fix.
 | `conserve-gate-edit.py` | `PostToolUse` on `Edit`/`Write` | **Fast.** Fires the instant `money.py` is saved; agent corrected mid-task, fix is local. The bad code did exist on disk for a moment. |
 | `conserve-gate-commit.py` | `PreToolUse` on `git commit` | **Late.** Fires only at ship time; nothing bad ever lands, but the mistake may be buried under later work, so the fix costs more. |
 
-> **Why the hook matcher is `Bash`, not `git`.** Claude Code has no `Git` tool — `git commit` runs
-> as a shell command through the `Bash` tool. So the hook matches `Bash` and the script filters for
-> `git commit` in the command string. The matcher names the *tool*, not the program it runs.
-
 **Try the variants (optional).** Each swap is one step; undo it with `git checkout` when done.
 
 - *Weak rule:* paste the contents of `.claude/rules/money-vague.md` over the money rules in
