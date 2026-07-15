@@ -234,8 +234,7 @@ mechanisms to reach for first.
 > **What has to change?** Talk it out before you read the answer.
 
 The tempting answer is "edit the rule." That is necessary but *not sufficient* — and the gap is the
-whole lesson. Three things describe the rounding policy, and the agent trusts them in the *opposite*
-order from how you'd expect:
+whole lesson. Three things describe the rounding policy, and all three have to move together:
 
 1. **The rule (feedforward)** — `CLAUDE.md` and `.claude/rules/cash-concrete.md`. Change "round
    down, customer's favor" to "round up, merchant's favor":
@@ -257,18 +256,75 @@ order from how you'd expect:
    if got != want:               # block when the code failed to round up
    ```
 
-**Why the code is the part that bites you.** An agent weights the *existing code* it can see more
-heavily than a sentence of prose in the charter. If you change only the rule and leave `round_cash`
-rounding down, the next time the agent writes or "simplifies" rounding code it will **imitate the
-floor implementation and its docstring** — quietly contradicting the new policy, no matter what the
-rule says. You've created a contradiction: the rule says up, the code says down, and the agent
-follows the code.
+**Why you still have to change the code — and why the lab can't show it.** At the size of this seed
+the rule is right in front of the agent and the contradiction is glaring, so a capable agent follows
+the rule and even flags the stale code as wrong. (We tested exactly this contradiction on fresh
+agents — rule says up, code says down — and they rounded up every time, one of them explicitly
+calling out the old code as non-compliant.) **The imitation problem is a scale effect.** In a real
+codebase — thousands of lines, the rule one entry in a long charter, round-down rounding repeated
+across dozens of call sites — the *prevailing pattern in the code* becomes the strongest signal the
+agent has, and it copies that pattern past a rule it barely weighs. The lab is too small to reproduce
+this; the takeaway is what it points at.
 
-The updated **hook catches this** — it blocks the round-down code the agent copied, forcing a
-correction. But the hook is a backstop, not a fix. The durable fix is to **make the code correct**:
-when `round_cash` already rounds up, there is nothing wrong left to imitate, and the contradiction
-between rule and code disappears. Feedforward, feedback, *and* the code itself have to agree — and
-the code is the loudest voice in the room.
+**And it bites hardest at the architecture level.** Rounding direction is a simple, local decision the
+model can derive from the rule alone — which is exactly why the lab agents got it right. The rules
+imitation actually defeats are the *design-level* ones, where most of a charter's rules live: "use
+ports and adapters," "no business logic in controllers," "depend on interfaces, not concretes." There
+is no one-line correct answer to copy; the agent infers "how we do it here" from the surrounding code.
+If most of the codebase ignores the rule, the counterexamples *are* the pattern, and the agent
+replicates them — the more non-compliant code, the stronger the pull. The cost of a rule the code
+contradicts isn't a wrong penny; it's an architecture that drifts further from its own charter with
+every change.
+
+So changing the code isn't optional:
+
+- **The old code is a real defect.** A rule is a promise about *future* code; it doesn't retroactively
+  fix `round_cash`, which keeps rounding down in production until someone edits it.
+- **At scale, the code is what the agent imitates.** Leave a round-down implementation in the tree and
+  you've planted the pattern the next change copies — the more of it there is, the louder it gets.
+
+The **hook removes the gamble** — it blocks any round-down result regardless of what the agent
+weighed, in the lab and at scale alike. But the hook is a backstop. The durable fix is to **make the
+code correct**: when nothing in the tree rounds down, there is no contradictory pattern to imitate and
+no defect left in production. Feedforward, feedback, *and* the code itself have to agree.
+
+## The bigger picture — three surfaces, spent sparingly
+
+Step back from the pennies. Everything in this hour is about the surfaces that bound what an agent
+does. There are three, and you just met all of them:
+
+```
+        Instruction                                   
+      (charter prose) ──┐                             
+                        │                             
+         The code ──────┼──▶   Agent   ──▶   Behavior band
+       (imitation)      │                 (how tight = reliability)
+                        │                             
+         Feedback ──────┘                             
+      (sensors, gates)                                
+```
+
+- **Instruction** — the charter prose the agent reads: rules, `CLAUDE.md`. This is feedforward.
+- **The code** — what already exists in the repo, which the agent imitates. The surface juniors
+  forget, and the one that dominates at scale.
+- **Feedback** — the sensors and gates that check the result: tests, hooks. This is feedback.
+
+Each surface narrows the **behavior band** — the range of things the agent might do. Reliability is
+just a tight band. Add a surface and the band gets narrower.
+
+Here's the honest part: **this lab is a toy.** A two-line `round_cash` does not deserve a rule and
+two hooks — in real life you'd read it once and move on; you would never gate something this small.
+Every rule and hook costs effort to write and, worse, to keep true as the code changes. So the goal
+is never *the most* constraints. It's **the fewest constraints that buy a tight-enough band** — you
+add one only when something real needs it: money, security, data integrity, a policy with legal or
+financial weight.
+
+Where does that pay for itself? Not here — in a production app. Many files, many tests, many policies
+and requirements, many contributors, an agent making changes all day. There the code surface is huge,
+no human reads every diff, and comprehension alone can't scale. A few well-placed rules and hooks on
+the things that actually carry risk keep the band tight when nothing else can. That is when the two
+mechanisms you practiced today earn their cost — and knowing *when not* to reach for them is as much
+the senior's job as knowing how.
 
 ## After the workshop — the take-home lab
 
