@@ -13,8 +13,8 @@ skip.
 - **The seam it drives home:** the agent produces plausible code fast; seniority is the judgment
   to tell plausible from correct. That judgment is trained, not downloaded.
 
-> The first part of this README is **the lab** — work straight through it, top to bottom.
-> [Instructor notes](#instructor-notes) live at the very bottom.
+> Work straight through **[The Lab](#the-lab)** — that's the hour. **[Going deeper](#going-deeper--after-the-workshop)**
+> is post-workshop reading and your take-home reps; **[Instructor notes](#instructor-notes)** are at the very bottom.
 
 ---
 
@@ -33,6 +33,9 @@ pip install pytest && pytest      # 3 passed — you're ready
 
 ⟲ **No local setup?** Pair with someone who's green, or run it in any browser Python sandbox —
 the seed is two small files.
+
+**For Step 4** you'll also use your AI coding tool (e.g. Claude Code) opened on the `seed/` folder —
+have it installed and working before the session, not during it.
 
 **What you'll work on.** The seed in [`seed/`](./seed/) is a tiny cash-register service: it settles
 a bill for cash and prints a receipt. Pennies are discontinued, so cash totals round to a nickel —
@@ -127,57 +130,51 @@ proved it. That red test is the day you stop being junior, in miniature. Reset b
 git apply -R patches/plausible-but-wrong.diff
 ```
 
-## Step 4 · The two loops that catch it automatically
+## Step 4 · The two loops — a rule and a hook
 
-You caught the overcharge by hand. Now watch the *charter* catch it for you. Almost everything in
-this field reduces to two kinds of loop:
+You caught the overcharge by hand. Now let the *charter* catch it for you, with the two mechanisms
+every charter is built from:
 
-- **Feedforward** — a signal that shapes the output *before* it's produced. Here: a **rule** in
-  `CLAUDE.md` telling the agent "cash rounds down to a nickel, in the customer's favor." The agent
-  reads it and writes conforming code the first time.
-- **Feedback** — a signal that checks the output *after* it's produced and reports back. Here: a
-  **hook** in `.claude/hooks/` that runs the policy as code and refuses a violating result.
+- **Feedforward** — a **rule** in `CLAUDE.md` that shapes the code *before* it's written.
+- **Feedback** — a **hook** in `.claude/hooks/` that checks the result *after* and refuses a bad one.
 
-The seed already has one of each turned on. Open the `seed/` folder in Claude Code and run these
-three prompts in order.
+Both are already on. Open the `seed/` folder in Claude Code and run two quick prompts.
 
-1. **Feedforward — one sentence of charter changes the code.** Ask your agent, verbatim (note: the
-   request says nothing about rounding *direction*):
+1. **The rule steers (feedforward).** Ask your agent, verbatim:
    > Show me how you'd implement `round_cash(total_cents)` — round a cash total to a nickel now that
-   > pennies are gone. Just show the code, don't edit the file.
+   > pennies are gone.
 
-   With the rounding rule in `CLAUDE.md`, it rounds **down** with integer math
-   (`total_cents - total_cents % 5`). Now comment that rule out of `CLAUDE.md` and ask again: it
-   rounds to the **nearest** nickel with a `float` (`round(total / 5) * 5`) — the overcharge from
-   Step 1. Same request, different charter, different code. *That* is the rule steering. (Restore the
-   rule when you're done.)
+   With the rounding rule in `CLAUDE.md`, it rounds **down**, in the customer's favor
+   (`total_cents - total_cents % 5`). Without that rule a capable agent rounds to the *nearest*
+   nickel — the overcharge from Step 1. The rule is the difference.
 
-2. **Feedback (fast) — the edit gate catches a bad draft instantly.** With the rule restored, ask
-   your agent, verbatim:
+2. **The hook catches (feedback).** Now ask it to write the bad version anyway:
    > Simplify `round_cash` to round to the nearest nickel: `round(total_cents / 5) * 5`.
 
-   The moment it saves `money.py`, the hook fires and reports back:
+   The moment it saves `money.py`, the hook fires and blocks it:
    ```text
    round-gate (edit): round_cash(1083) = 1085, but the customer's-favor amount is 1080 — cash rounded against the customer.
    ```
-   Told *why*, the agent puts it back to rounding down. `pytest` green and customer-favoring.
+   Told *why*, the agent puts it back. The same gate also blocks at `git commit`, so a bad version
+   can't be saved *or* shipped.
 
-3. **Feedback (late) — the commit gate is the last line.** Reset, re-apply the plant in the shell,
-   then ask the agent to commit it:
-   ```bash
-   git apply patches/plausible-but-wrong.diff
-   ```
-   > Commit this change.
+**One rule, one hook:** the rule shaped the draft, the hook caught the one that slipped. That's the
+whole toolkit a charter uses to bound what an agent does.
 
-   The commit is blocked outright:
-   ```text
-   round-gate (commit): BLOCKED. round_cash(1083) = 1085, but the customer's-favor amount is 1080 — cash rounded against the customer.
-   ```
-   Reset when done: `git apply -R patches/plausible-but-wrong.diff`.
+## What you leave with
 
-**The whole idea in three prompts:** the rule shaped the draft; the fast gate caught the draft that
-slipped; the late gate stopped it from shipping. One feedforward, one feedback — the two mechanisms
-a charter uses to shape what the agent does.
+- The comprehension card — the daily rule, the five questions, the five moves.
+- A filled card applied to a real agent diff.
+- A test you wrote that catches the planted overcharge.
+- A working mental model: feedforward (rules) shape the draft, feedback (hooks) guard the result —
+  the two mechanisms a charter uses to shape an agent.
+
+That's the hour. Everything below is for *after* the workshop — reference, a discussion to take back
+to your team, and reps on real code.
+
+---
+
+# Going deeper — after the workshop
 
 ## How it works — the two knobs
 
@@ -316,15 +313,7 @@ the things that actually carry risk keep the band tight when nothing else can. T
 mechanisms you practiced today earn their cost — and knowing *when not* to reach for them is as much
 the senior's job as knowing how.
 
-## What you leave with
-
-- The comprehension card — the daily rule, the five questions, the five moves.
-- A filled card applied to a real agent diff.
-- A test you wrote that catches the planted overcharge.
-- A working mental model: three surfaces bound an agent — the rule you write (instruction), the code
-  it imitates, and the hook that checks it (feedback) — and reliability is just a tight behavior band.
-
-## After the workshop — the take-home lab
+## The take-home lab
 
 The hour gives you the card and one rep on a toy repo. Judgment comes from reps on real code you
 didn't write. This lab is yours to run afterward — no instructor, no answer key. Do it on a project
@@ -371,15 +360,45 @@ Source and docs: [sqlite.org](https://www.sqlite.org/) · source at
 
 | Length | Shape | Deliverable |
 |---|---|---|
-| **1 hour** | Talk + one live lab | The comprehension card, applied once to a real agent diff |
+| **60 or 90 min** | Talk + one live lab | The comprehension card, applied once to a real agent diff |
 
-Rough pacing: ~15 min talk, ~35 min lab (Steps 1–4), ~10 min regroup. Suggested budget within the
-lab: Step 1 ≈ 3 min, Step 2 ≈ 12 min, Step 3 ≈ 10 min (stretch/fast finishers), Step 4 ≈ 8 min.
+**Does it fit in 60?** Yes — the core (talk + Steps 1–4 + regroup) fits an hour, but *tightly*, and
+only if everyone's `pytest` **and** Claude Code are green before the session. There's no buffer for
+stragglers or agent hiccups, and the *Going deeper* sections become take-home. If you have 90
+minutes, take them: you get breathing room and can run the two knobs and the "policy just changed"
+discussion live — which is where the senior-level insight actually lands.
+
+**60-minute agenda (lean — Going deeper is take-home):**
+
+| Clock | Min | Segment |
+|---|---|---|
+| 0:00 | 3 | Welcome; confirm everyone is green (pre-flight done ahead of time) |
+| 0:03 | 12 | Talk — the frame, the key ideas, the "a diff I couldn't explain" anecdote |
+| 0:15 | 3 | Step 1 — baseline & spring the trap |
+| 0:18 | 12 | Step 2 — the five questions, in pairs |
+| 0:30 | 10 | Step 3 — prove it wrong (write the failing test) |
+| 0:40 | 10 | Step 4 — the rule + the hook (two prompts) |
+| 0:50 | 10 | Regroup — who caught it, green ≠ correct, point to *Going deeper* |
+
+**90-minute agenda (comfortable — discussion runs live):**
+
+| Clock | Min | Segment |
+|---|---|---|
+| 0:00 | 5 | Welcome; green check |
+| 0:05 | 15 | Talk — frame, key ideas, anecdote |
+| 0:20 | 3 | Step 1 — baseline & trap |
+| 0:23 | 14 | Step 2 — the five questions, in pairs |
+| 0:37 | 12 | Step 3 — prove it wrong |
+| 0:49 | 12 | Step 4 — the rule + the hook |
+| 1:01 | 10 | *Going deeper* — the two knobs (walk the tradeoffs; try one variant) |
+| 1:11 | 12 | *Going deeper* — "the policy just changed" (pairs, then share) |
+| 1:23 | 7 | The bigger picture + wrap |
 
 - **Cut talk before you cut lab.** If you run long, shrink the talk; never the lab.
 - **Pre-flight matters.** Put the *Before you start* block in the calendar invite and on the opening
-  slide. A failed `pip install` in minute two costs someone the lab. Anyone red at the start pairs
-  with someone green.
+  slide. A failed `pip install` — or a missing Claude Code — in minute two costs someone the lab.
+  Step 4 needs Claude Code working on the seed for everyone; confirm it ahead, not in the room.
+  Anyone red at the start pairs with someone green.
 - **Protect the "I almost shipped that" moment.** Step 1's trap and Step 3's red test are the
   emotional core. Don't spoil that green ≠ correct — let the room discover it.
 - **Regroup on the catch.** Who spotted the overcharge? Surface the near-miss out loud; it's the
@@ -448,8 +467,9 @@ Pair a stronger engineer with a newer one for the lab. Let the stretch in Step 3
 
 - [ ] Time-box each lab step against a real run; adjust the pacing table.
 - [ ] Decide whether to demo the *variants* live or leave them as take-home.
-- [ ] Both hooks are on by default, so the edit gate fires first and the commit gate rarely triggers
-      on its own — Step 4 prompt 3 applies the plant in the shell to force the commit path. If you
-      want the commit gate to fire alone in a live agent run, comment out the `PostToolUse` block.
-- [ ] Step 4 prompt 1 disables the rule by commenting it out of `CLAUDE.md`; confirm your Claude Code
-      setup reloads `CLAUDE.md` between prompts (restart the session if not).
+- [ ] Step 4 demos the *edit* gate live; the commit gate is only mentioned. To show it firing, apply
+      the plant in the shell and ask the agent to commit (both hooks are on, so the edit gate would
+      otherwise catch it first).
+- [ ] Step 4 prompt 1 *states* the no-rule behavior (rounds to nearest) rather than toggling it live,
+      to keep the hour tight. To demo the toggle, comment the rounding rule out of `CLAUDE.md` and
+      restart the session so it reloads — budget extra time; better suited to the 90-minute slot.
